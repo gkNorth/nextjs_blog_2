@@ -12,7 +12,7 @@ export default function Home({ article }: Props) {
         <Link href={`/article/${article.id}`} passHref>
           <a className="rounded overflow-hidden shadow-lg">
             <img
-              className="w-full"
+              className="w-full object-cover"
               src={article.thumbnail.url}
               alt="Sunset in the mountains"
             />

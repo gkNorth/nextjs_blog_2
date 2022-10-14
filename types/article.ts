@@ -17,3 +17,10 @@ export type Article = {
   meta_description: string
   mata_keywords: string
 }
+
+export type Articles = {
+  contents: Article[]
+  totalCount: number
+  offset: number
+  limit: number
+}

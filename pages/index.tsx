@@ -1,24 +1,27 @@
 import { getArticles } from '../libs/getArticles';
 import Card from '../components/Card'
 import type { GetStaticProps } from 'next'
-import type { Article } from '../types/article';
-import { useState, useCallback, useEffect } from "react";
+import type { Article, Articles } from '../types/article';
+import { useState, useLayoutEffect } from "react";
 import Image from 'next/image'
 
 type Props = {
   articles: Article[]
   totalCount: number
 }
+type FetchMoreArticles = () => Promise<void | null>
 
 export default function Home({ articles, totalCount }: Props) {
   const [stateArticles, setStateArticles] = useState<Article[]>(articles)
   const [isMoreArticles, setIsMoreArticles] = useState(true)
-  const getMoreArticles = async () => {
+  const getMoreArticles: FetchMoreArticles = async () => {
+    console.log('fire')
     if (stateArticles.length < totalCount) {
-      const listBottom = document.querySelector('.list').getBoundingClientRect().bottom
-      const vh = window.innerHeight
+      const list = document.querySelector<HTMLElement>('.list')
+      const listBottom: number = list!.getBoundingClientRect().bottom
+      const vh: number = window.innerHeight
       if (listBottom < vh * 0.9) {
-        const moreArticlesContainer: Article[] = await getArticles(stateArticles.length)
+        const moreArticlesContainer: Articles = await getArticles(stateArticles.length)
         const moreArticles = moreArticlesContainer.contents
         const addedArticles = [...stateArticles, ...moreArticles]
         await setStateArticles(addedArticles)
@@ -27,17 +30,26 @@ export default function Home({ articles, totalCount }: Props) {
       await setIsMoreArticles(false)
     }
   }
-  useEffect(() => {
-    window.addEventListener('scroll', getMoreArticles)
-    return () => window.removeEventListener("scroll", getMoreArticles);
+
+  const throttle = (fn: FetchMoreArticles, interval: number) => {
+    let lastTime = Date.now() - interval
+    return () => {
+      if ((lastTime + interval) < Date.now()) {
+        lastTime = Date.now()
+        fn()
+      }
+    }
+  }
+  const getMoreArticlesApplyThrottle = throttle(getMoreArticles, 50)
+
+  useLayoutEffect(() => {
+    window.addEventListener('scroll', getMoreArticlesApplyThrottle)
+    return () => window.removeEventListener("scroll", getMoreArticlesApplyThrottle);
   }, [stateArticles])
 
   return (
     <>
-      <h1 className="container mx-auto px-10 pt-10 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3">
-        記事一覧
-      </h1>
-      <div className="list container mx-auto p-10 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+      <div className="list container mx-auto p-10 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
         {stateArticles.map((article:Article) => <Card article={article} key={article.id}></Card>)}
       </div>
       {isMoreArticles && (

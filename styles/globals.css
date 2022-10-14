@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply bg-gray-50
+}
+
+.list img {
+  aspect-ratio: 5 / 3;
+}
+
+.blog-contents h2 {
+  @apply border-l-4 px-2 py-1 mb-3 mt-5 border-sky-900
+}
+.blog-contents p, .blog-contents li {
+  @apply text-base
+}
